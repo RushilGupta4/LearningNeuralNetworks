@@ -1,2 +1,2 @@
 # LearningNeuralNetworks
-Learning Neural Networks from sentdex's tutorial
+Learning Neural Networks
