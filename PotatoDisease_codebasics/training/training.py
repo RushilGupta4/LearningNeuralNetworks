@@ -8,11 +8,11 @@ from tensorflow.keras import models, layers
 
 _TRAINING_DIR = join("training", "PlantVillage")
 _IMAGE_SIZE = 256
-_BATCH_SIZE = 8
+_BATCH_SIZE = 12
 _CHANNELS = 3
 _EPOCHS = 50
 
-_TRAIN_SIZE = 0.8
+_TRAIN_SIZE = 0.75
 _VALIDATION_SIZE = 0.1
 _CLASSES = 3
 
@@ -20,15 +20,14 @@ _MAJOR_VERSION = 1.0
 
 
 def main():
-    with tf.device('/GPU:0'):
-        dataset = get_dataset()
-        training_dataset, validation_dataset, test_dataset = preprocess_data(dataset, _TRAIN_SIZE, _VALIDATION_SIZE,
-                                                                             True, 10000)
-        model = get_model()
-        model, history = train(model, training_dataset, validation_dataset)
-        model.evaluate(test_dataset)
+    dataset = get_dataset()
+    training_dataset, validation_dataset, test_dataset = preprocess_data(dataset, _TRAIN_SIZE, _VALIDATION_SIZE,
+                                                                         True, 5000)
+    model = get_model()
+    model, history = train(model, training_dataset, validation_dataset)
+    model.evaluate(test_dataset)
 
-        save_model(model)
+    save_model(model)
 
 
 def get_dataset():
@@ -61,10 +60,11 @@ def preprocess_data(dataset, train_split, validation_split, shuffle, shuffle_siz
 
 
 def get_model():
-    input_shape = (_BATCH_SIZE, _IMAGE_SIZE, _IMAGE_SIZE, _CHANNELS)
+    div = 1
+    input_shape = (_BATCH_SIZE, int(_IMAGE_SIZE * div), int(_IMAGE_SIZE * div), _CHANNELS)
 
     resize_and_rescale = tf.keras.Sequential([
-        layers.experimental.preprocessing.Resizing(_IMAGE_SIZE, _IMAGE_SIZE),
+        layers.experimental.preprocessing.Resizing(int(_IMAGE_SIZE * div), int(_IMAGE_SIZE * div)),
         layers.experimental.preprocessing.Rescaling(1.0 / 255),
     ])
 
@@ -77,11 +77,11 @@ def get_model():
         resize_and_rescale,
         data_augmentation,
         layers.Conv2D(32, (3, 3), activation="relu", input_shape=input_shape),
-        layers.MaxPooling2D((2, 2)),
+        layers.MaxPooling2D((2, 2), strides=(1, 1)),
         layers.Conv2D(64, kernel_size=(3, 3), activation='relu'),
-        layers.MaxPooling2D((2, 2)),
+        layers.MaxPooling2D((2, 2), strides=(1, 1)),
         layers.Conv2D(64, kernel_size=(3, 3), activation='relu'),
-        layers.MaxPooling2D((2, 2)),
+        layers.MaxPooling2D((2, 2), strides=(1, 1)),
         layers.Conv2D(64, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),
         layers.Conv2D(64, (3, 3), activation='relu'),
@@ -130,3 +130,8 @@ def save_model(model):
         rmtree(model_dir)
 
     model.save(model_dir)
+
+
+if __name__ == '__main__':
+    with tf.device("/GPU:0"):
+        main()

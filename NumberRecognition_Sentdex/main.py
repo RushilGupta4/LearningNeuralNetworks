@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Flatten, Dense
+from tensorflow.keras.layers import Flatten, Dense, Conv2D, MaxPooling2D
 from tensorflow.keras.utils import normalize
 from os.path import exists
 
@@ -16,6 +16,8 @@ if exists(model_name):
     model = load_model(model_name)
 else:
     model = Sequential()
+    model.add(Conv2D(32, (3, 3), activation="relu"))
+    model.add(MaxPooling2D((2, 2), strides=(1, 1)))
     model.add(Flatten())
     model.add(Dense(128, activation=tf.nn.relu))
     model.add(Dense(128, activation=tf.nn.relu))
